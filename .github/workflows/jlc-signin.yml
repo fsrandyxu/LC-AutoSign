@@ -1,0 +1,20 @@
+name: JLC Auto Sign
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # 北京时间每天8点执行（UTC 0点）
+  workflow_dispatch:
+
+jobs:
+  sign:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Run Sign Script
+      env:
+        TOKEN_LIST: ${{ secrets.TOKEN_LIST }}
+        SEND_KEY_LIST: ${{ secrets.SEND_KEY_LIST }}
+      run: |
+        python main.py
