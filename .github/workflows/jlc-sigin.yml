@@ -11,15 +11,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 拉取仓库代码
-        uses: actions/checkout@v4
-
+        uses: actions/checkout@v4.2.0  # 升级版本消除Node.js警告
       - name: 配置Python环境
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v5.2.0  # 升级版本消除Node.js警告
         with:
           python-version: '3.10'
-          cache: 'pip'
-- name: 安装立创脚本依赖
-  run: pip install requests
+      - name: 安装立创脚本依赖
+        run: pip install requests
       - name: 执行立创签到脚本
         env:
           TOKEN_LIST: ${{ secrets.TOKEN_LIST }}
@@ -31,17 +29,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 拉取仓库代码
-        uses: actions/checkout@v4
-
+        uses: actions/checkout@v4.2.0
       - name: 配置Python环境
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v5.2.0
         with:
           python-version: '3.10'
-          cache: 'pip'
-
-      - name: 安装脚本依赖
+      - name: 安装米沃奇脚本依赖
         run: pip install requests
-
       - name: 执行米沃奇签到脚本
         env:
           MILWAUKEETOOL_TOKEN_LIST: ${{ secrets.MILWAUKEETOOL_TOKEN_LIST }}
