@@ -1,44 +1,21 @@
 name: JLC Auto Sign
+
 on:
   schedule:
-    # 北京时间8/14/20/4点执行（UTC-8小时）
-    - cron: '0 0,6,12,18 * * *'
-  workflow_dispatch:  # 手动触发开关
+    - cron: '0 16,22,4,10 * * *'  # 每 6 小时执行一次，UTC 时间
+
+  workflow_dispatch:
 
 jobs:
-  # 立创签到子任务
-  jlc-sign-job:
+  sign:
     runs-on: ubuntu-latest
     steps:
-      - name: 拉取仓库代码
-        uses: actions/checkout@v4.2.0  # 升级版本消除Node.js警告
-      - name: 配置Python环境
-        uses: actions/setup-python@v5.2.0  # 升级版本消除Node.js警告
-        with:
-          python-version: '3.10'
-      - name: 安装立创脚本依赖
-        run: python3 -m pip install requests  # 强制Python3安装依赖
-      - name: 执行立创签到脚本
-        env:
-          TOKEN_LIST: ${{ secrets.TOKEN_LIST }}
-          SEND_KEY_LIST: ${{ secrets.SEND_KEY_LIST }}
-        run: python3 main.py  # 用Python3执行脚本
+    - name: Checkout
+      uses: actions/checkout@v3
 
-  # 米沃奇签到子任务
-  milwaukeetool-sign-job:
-    runs-on: ubuntu-latest
-    steps:
-      - name: 拉取仓库代码
-        uses: actions/checkout@v4.2.0
-      - name: 配置Python环境
-        uses: actions/setup-python@v5.2.0
-        with:
-          python-version: '3.10'
-      - name: 安装米沃奇脚本依赖
-        run: python3 -m pip install requests  # 强制Python3安装依赖
-      - name: 执行米沃奇签到脚本
-        env:
-          MILWAUKEETOOL_TOKEN_LIST: ${{ secrets.MILWAUKEETOOL_TOKEN_LIST }}
-          MILWAUKEETOOL_CLIENT_ID: ${{ secrets.MILWAUKEETOOL_CLIENT_ID }}
-          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
-        run: python3 milwaukeetool-sign.py  # 用Python3执行脚本
+    - name: Run Sign Script
+      env:
+        TOKEN_LIST: ${{ secrets.TOKEN_LIST }}
+        SEND_KEY_LIST: ${{ secrets.SEND_KEY_LIST }}
+      run: |
+        python main.py
