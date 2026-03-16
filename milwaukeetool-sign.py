@@ -9,15 +9,15 @@ from pathlib import Path
 
 # ================= 全局配置区 =================
 # 【核心开关】统一修改所有账号执行的方法
-GLOBAL_METHOD = "add.signon.item"# 签到方法
-# GLOBAL_METHOD = "get.signon.list"#这个是签到天数的
+GLOBAL_METHOD = "add.signon.item"  # 签到方法
+# GLOBAL_METHOD = "get.signon.list"  # 这个是查询签到天数的
 GLOBAL_STYPE = 1
 
 # 【通知配置】企业微信 Webhook 地址
 # 请替换为你自己的 key (替换掉示例中的 key)
-WEBHOOK_URL = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=693axxx6-848f-49ba-a110-20ae080baf95"
+WEBHOOK_URL = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=00a9ed23-19e7-489b-b7b8-d7a4a6ae8cbe"
 
-# 【调试开关】True: 打印完整返回JSON; False: 仅失败时打印66cc63a1-0679-9888-3146-0b13a88d9901
+# 【调试开关】True: 打印完整返回JSON; False: 仅失败时打印
 SHOW_RAW_RESPONSE = True
 
 SECRET = "36affdc58f50e1035649abc808c22b48"
@@ -40,8 +40,6 @@ HEADERS = {
     "Accept-Encoding": "gzip, deflate, br",
     "Accept-Language": "zh-CN,zh;q=0.9"
 }
-
-
 # ===========================================
 
 def generate_sign(params_dict):
@@ -57,7 +55,7 @@ def generate_sign(params_dict):
 
 def format_sign_status(json_data):
     """
-    將簽到狀態 JSON 資料格式化為易讀的文字
+    将签到状态 JSON 数据格式化为易读的文字
     """
     try:
         # 解析 JSON
@@ -66,11 +64,11 @@ def format_sign_status(json_data):
         else:
             data = json_data
         
-        # 檢查回應狀態
+        # 检查响应状态
         if data.get('status') != 200:
-            return f"❌ 錯誤：API 回應異常 (狀態碼: {data.get('status')})"
+            return f"❌ 错误：API 响应异常 (状态码: {data.get('status')})", 0
         
-        # 取得簽到資料
+        # 获取签到数据
         sign_data = data.get('data', {})
         sign_status = sign_data.get('SigninStatus', 0)
         sign_count = sign_data.get('signcount', 0)
@@ -79,24 +77,24 @@ def format_sign_status(json_data):
         used_num = sign_data.get('used_num', 0)
         available_num = sign_data.get('available_send_num', 0)
         
-        # 格式化輸出
+        # 格式化输出
         output = []
         output.append("=" * 50)
-        output.append(" 📋 簽到系統狀態報告 ".center(48, "="))
+        output.append(" 📋 签到系统状态报告 ".center(48, "="))
         output.append("=" * 50)
         output.append("")
         
-        # 基本狀態
-        status_text = "✅ 已簽到" if sign_status == 1 else "❌ 未簽到"
-        output.append(f"【基本資訊】")
-        output.append(f"  🔐 簽到狀態：{status_text}")
-        output.append(f"  📊 連續簽到：{sign_count} 天")
-        output.append(f"  📅 簽到總數：{len(items)} 天")
+        # 基本状态
+        status_text = "✅ 已签到" if sign_status == 1 else "❌ 未签到"
+        output.append(f"【基本信息】")
+        output.append(f"  🔐 签到状态：{status_text}")
+        output.append(f"  📊 连续签到：{sign_count} 天")
+        output.append(f"  📅 签到总数：{len(items)} 天")
         output.append("")
         
-        # 簽到記錄
+        # 签到记录
         if items:
-            output.append("【簽到記錄】")
+            output.append("【签到记录】")
             # 排序日期
             sorted_items = sorted(items)
             
@@ -114,50 +112,50 @@ def format_sign_status(json_data):
                                 missing = current.replace(day=current.day + j)
                                 missing_dates.append(missing.strftime("%Y-%m-%d"))
                     
-                    # 輸出簽到記錄
+                    # 输出签到记录
                     for date in sorted_items:
                         output.append(f"  📆 {date} ✅")
                     
-                    # 輸出缺失記錄
+                    # 输出缺失记录
                     if missing_dates:
                         output.append("")
-                        output.append("【缺失記錄】")
+                        output.append("【缺失记录】")
                         for date in missing_dates:
                             output.append(f"  📆 {date} ❌")
                 except:
-                    # 如果日期解析失敗，直接輸出
+                    # 如果日期解析失败，直接输出
                     for date in sorted_items:
                         output.append(f"  📆 {date} ✅")
             else:
                 for date in sorted_items:
                     output.append(f"  📆 {date} ✅")
         else:
-            output.append("【簽到記錄】")
-            output.append("  📭 暫無簽到記錄")
+            output.append("【签到记录】")
+            output.append("  📭 暂无签到记录")
         
         output.append("")
         
-        # 使用統計
-        output.append("【使用統計】")
-        output.append(f"  📤 今日發送：{send_num}")
+        # 使用统计
+        output.append("【使用统计】")
+        output.append(f"  📤 今日发送：{send_num}")
         output.append(f"  📥 今日使用：{used_num}")
-        output.append(f"  💾 可用額度：{available_num}")
+        output.append(f"  💾 可用额度：{available_num}")
         
         output.append("")
         output.append("=" * 50)
-        output.append(f" 報告時間：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        output.append(f" 报告时间：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         output.append("=" * 50)
         
-        return "\n".join(output)
+        return "\n".join(output), sign_count
         
     except json.JSONDecodeError as e:
-        return f"❌ JSON 解析錯誤：{str(e)}"
+        return f"❌ JSON 解析错误：{str(e)}", 0
     except Exception as e:
-        return f"❌ 格式化錯誤：{str(e)}"
+        return f"❌ 格式化错误：{str(e)}", 0
 
 def get_markdown_format(json_data):
     """
-    將簽到狀態轉換為 Markdown 格式（適合 GitHub Action Summary）
+    将签到状态转换为 Markdown 格式（适合 GitHub Action Summary）
     """
     try:
         if isinstance(json_data, str):
@@ -166,56 +164,82 @@ def get_markdown_format(json_data):
             data = json_data
         
         if data.get('status') != 200:
-            return f"❌ 錯誤：API 回應異常 (狀態碼: {data.get('status')})"
+            return f"❌ 错误：API 响应异常 (状态码: {data.get('status')})"
         
         sign_data = data.get('data', {})
         sign_status = sign_data.get('SigninStatus', 0)
         sign_count = sign_data.get('signcount', 0)
         items = sign_data.get('items', [])
         
-        status_text = "✅ 已簽到" if sign_status == 1 else "❌ 未簽到"
+        status_text = "✅ 已签到" if sign_status == 1 else "❌ 未签到"
         
         # 建立 Markdown 表格
         markdown = []
-        markdown.append("## 📊 簽到狀態報告")
+        markdown.append("## 📊 签到状态报告")
         markdown.append("")
-        markdown.append("| 項目 | 狀態 |")
+        markdown.append("| 项目 | 状态 |")
         markdown.append("|------|------|")
-        markdown.append(f"| 🔐 簽到狀態 | {status_text} |")
-        markdown.append(f"| 📊 連續簽到天數 | {sign_count} 天 |")
+        markdown.append(f"| 🔐 签到状态 | {status_text} |")
+        markdown.append(f"| 📊 连续签到天数 | {sign_count} 天 |")
         
         if items:
             items_str = ", ".join(items)
-            markdown.append(f"| 📆 簽到記錄 | {items_str} |")
+            markdown.append(f"| 📆 签到记录 | {items_str} |")
             
-            # 詳細記錄
+            # 详细记录
             markdown.append("")
-            markdown.append("### 📝 簽到明細")
+            markdown.append("### 📝 签到明细")
             for date in sorted(items):
                 markdown.append(f"- {date} ✅")
         else:
-            markdown.append(f"| 📆 簽到記錄 | 暫無記錄 |")
+            markdown.append(f"| 📆 签到记录 | 暂无记录 |")
             
         return "\n".join(markdown)
         
     except Exception as e:
-        return f"❌ 格式化錯誤：{str(e)}"
+        return f"❌ 格式化错误：{str(e)}"
 
-
-def send_wechat_notification(failed_accounts, total_count, success_count):
-    """发送企业微信通知"""
+def send_wechat_notification(content):
+    """通用企业微信通知发送函数"""
     if not WEBHOOK_URL or "key=693axxx6" in WEBHOOK_URL:
         print("\n⚠️  未配置有效的 Webhook URL，跳过通知发送。")
         return
+    payload = {
+        "msgtype": "text",
+        "text": {
+            "content": content
+        }
+    }
+    try:
+        resp = requests.post(WEBHOOK_URL, json=payload, timeout=5)
+        if resp.status_code == 200 and resp.json().get("errcode") == 0:
+            print("\n📢 企业微信通知发送成功。")
+        else:
+            print(f"\n⚠️  通知发送失败: {resp.text}")
+    except Exception as e:
+        print(f"\n⚠️  通知发送异常: {str(e)}")
 
+def send_sign_success_notify(client_id, sign_days):
+    """发送签到成功通知"""
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-    # 构建失败详情列表
-    fail_details = "\n".join([f"• {name}: {reason}" for name, reason in failed_accounts])
-
     content = (
-        f"🤖 **签到任务执行报告**\n"
-        f"📅 时间: {now_str}\n"
+        f"🎉 **签到成功通知**\n"
+        f"📅 签到时间: {now_str}\n"
+        f"--------------------------\n"
+        f"🔑 账号ID: {client_id}\n"
+        f"📊 连续签到天数: {sign_days} 天\n"
+        f"✅ 状态: 今日签到完成"
+    )
+    send_wechat_notification(content)
+
+def send_task_summary_notify(failed_accounts, total_count, success_count):
+    """发送任务汇总通知（失败时）"""
+    now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    # 构建失败详情列表
+    fail_details = "\n".join([f"• {name}: {reason}" for name, reason in failed_accounts]) if failed_accounts else "无"
+    content = (
+        f"🤖 **签到任务执行汇总报告**\n"
+        f"📅 执行时间: {now_str}\n"
         f"--------------------------\n"
         f"✅ 成功: {success_count} 个\n"
         f"❌ 失败: {len(failed_accounts)} 个\n"
@@ -223,42 +247,26 @@ def send_wechat_notification(failed_accounts, total_count, success_count):
         f"--------------------------\n"
         f"⚠️ **失败详情:**\n{fail_details}"
     )
-
-    payload = {
-        "msgtype": "text",
-        "text": {
-            "content": content
-        }
-    }
-
-    try:
-        resp = requests.post(WEBHOOK_URL, json=payload, timeout=5)
-        if resp.status_code == 200 and resp.json().get("errcode") == 0:
-            print("\n📢 已发送失败通知到企业微信。")
-        else:
-            print(f"\n⚠️  通知发送失败: {resp.text}")
-    except Exception as e:
-        print(f"\n⚠️  通知发送异常: {str(e)}")
-
+    send_wechat_notification(content)
 
 def process_account(account_info, index, total, failed_list):
     token = os.getenv('MILWAUKEETOOL_TOKEN_LIST', '')
     client_id = os.getenv('MILWAUKEETOOL_CLIENT_ID', '')
     token_show = f"{token[:6]}...{token[-4:]}" if len(token) > 10 else "***"
-
     print(f"      ├─ 方法: {GLOBAL_METHOD}")
     print(f"      ├─ ID: {client_id}")
     print(f"      └─ Token: {token_show}")
-
+    
+    # 修复原代码name未定义问题
+    name = f"账号{index}" if client_id else f"未知账号{index}"
+    
     if not token or not client_id:
         msg = "缺少 token 或 client_id"
         print(f"      ❌ 结果: {msg}")
         failed_list.append((name, msg))
         return False
-
     now = datetime.now()
     timestamp_str = now.strftime("%Y-%m-%d %H:%M:%S")
-
     payload = {
         "token": token,
         "client_id": client_id,
@@ -268,27 +276,21 @@ def process_account(account_info, index, total, failed_list):
         "platform": PLATFORM,
         "method": GLOBAL_METHOD
     }
-
     if GLOBAL_METHOD == "add.signon.item":
         payload["year"] = str(now.year)
         payload["month"] = str(now.month)
         payload["day"] = str(now.day)
         payload["stype"] = GLOBAL_STYPE
-
     sign_val = generate_sign(payload)
     payload["sign"] = sign_val
-
     try:
         delay = random.uniform(1.0, 2.5)
         print(f"      ⏳ 等待 {delay:.1f}s...")
         time.sleep(delay)
-
         response = requests.post(URL, headers=HEADERS, json=payload, timeout=10)
         resp_json = response.json()
-
         code = resp_json.get("code")
         msg = resp_json.get("msg", "") or resp_json.get("message", "") or str(resp_json)
-
         is_success = False
         if code == 200:
             is_success = True
@@ -296,14 +298,12 @@ def process_account(account_info, index, total, failed_list):
             is_success = True
         elif GLOBAL_METHOD == "add.signon.item" and ("已签到" in msg or "成功" in msg or "重复" in msg):
             is_success = True
-
         if is_success:
             print(f"      ✅ 结果: 成功 | {msg}")
             if SHOW_RAW_RESPONSE:
                 print(f"      └─ 返回: {json.dumps(resp_json, ensure_ascii=False)}")
-
-            #--------
-            print("\n📢 開始檢查簽到天數")
+            # 检查签到天数并发送成功通知
+            print("\n📢 开始检查签到天数")
             delay = random.uniform(1.0, 2.5)
             print(f"      ⏳ 等待 {delay:.1f}s...")
             time.sleep(delay)
@@ -320,54 +320,51 @@ def process_account(account_info, index, total, failed_list):
             payload["sign"] = sign_val
             response = requests.post(URL, headers=HEADERS, json=payload, timeout=40)
             resp_json = response.json()
-            print(f"{format_sign_status(resp_json)}")
-            
+            status_text, sign_count = format_sign_status(resp_json)
+            print(status_text)
+            # 发送签到成功通知
+            send_sign_success_notify(client_id, sign_count)
             return True
         else:
             print(f"      ⚠️ 结果: 失败 (Code:{code}) | {msg}")
             # 失败时强制打印完整返回
             print(f"      └─ 完整返回:\n{json.dumps(resp_json, ensure_ascii=False, indent=4)}")
-
             # 记录失败信息用于通知
             short_msg = msg if len(msg) < 50 else msg[:47] + "..."
             failed_list.append((name, f"{short_msg} (Code:{code})"))
             return False
-
     except Exception as e:
         err_msg = str(e)
         print(f"      ❌ 结果: 网络/系统错误 - {err_msg}")
         failed_list.append((name, f"网络错误: {err_msg}"))
         return False
 
-
 def main():
     print("=" * 60)
     print(f"🚀 批量签到启动 | 模式: {GLOBAL_METHOD}")
     print(f"📅 时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 60)
-
     success_count = 0
     failed_list = []  # 存储 (名字, 原因)
-
-    process_account(0, 1, 1, failed_list)
-
+    # 处理单个账号
+    if process_account(0, 1, 1, failed_list):
+        success_count += 1
+    # 如需批量处理，取消注释以下代码
     # for i, acc in enumerate(accounts, 1):
     #     if process_account(acc, i, len(accounts), failed_list):
     #         success_count += 1
-
     # 汇总
     print("\n" + "=" * 60)
     print(f"🏁 任务结束")
     print(f"   ✅ 成功: {success_count}")
     print(f"   ❌ 失败: {len(failed_list)}")
     print("=" * 60)
-
-    # 如果有失败，发送通知
+    # 发送任务汇总通知（有失败则发送）
     if len(failed_list) > 0:
-        print("\n失敗。")
+        send_task_summary_notify(failed_list, 1, success_count)
+        print("\n❌ 存在失败账号，已发送汇总通知。")
     else:
-        print("\n🎉 全部成功，无需发送通知。")
-
+        print("\n🎉 全部成功！")
 
 if __name__ == "__main__":
     main()
