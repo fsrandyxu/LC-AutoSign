@@ -1,0 +1,35 @@
+# milwaukeetool-signin.yml
+name: Milwaukeetool Auto Sign  # 独立的任务名称，与立创签到区分开
+on:
+  schedule:
+    # 北京时间 8:00、14:00、20:00、4:00 执行（UTC时间+8小时）
+    - cron: '0 0,6,12,18 * * *'
+  workflow_dispatch:  # 保留手动触发开关
+
+jobs:
+  milwaukeetool-sign-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 拉取仓库代码
+        uses: actions/checkout@v4
+
+      - name: 配置Python环境
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'  # 适配脚本的Python版本
+          cache: 'pip'  # 缓存pip依赖，加快执行速度
+
+      - name: 安装脚本依赖
+        run: |
+          pip install requests  # 安装脚本所需的requests库
+
+      - name: 执行米沃奇签到脚本
+        env:
+          # 传递仓库Secrets中的敏感信息
+          MILWAUKEETOOL_TOKEN_LIST: ${{ secrets.MILWAUKEETOOL_TOKEN_LIST }}
+          MILWAUKEETOOL_CLIENT_ID: ${{ secrets.MILWAUKEETOOL_CLIENT_ID }}
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}  # 企业微信通知地址（可选）
+        run: python milwaukeetool-sign.py  # 执行米沃奇签到脚本
+
+      - name: 输出执行时间（调试用）
+        run: echo "签到任务执行完成，时间：$(date +'%Y-%m-%d %H:%M:%S')"
