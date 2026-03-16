@@ -17,12 +17,12 @@ jobs:
         with:
           python-version: '3.10'
       - name: 安装立创脚本依赖
-        run: pip install requests
+        run: python3 -m pip install requests  # 强制Python3安装依赖
       - name: 执行立创签到脚本
         env:
           TOKEN_LIST: ${{ secrets.TOKEN_LIST }}
           SEND_KEY_LIST: ${{ secrets.SEND_KEY_LIST }}
-        run: python main.py
+        run: python3 main.py  # 用Python3执行脚本
 
   # 米沃奇签到子任务
   milwaukeetool-sign-job:
@@ -35,10 +35,10 @@ jobs:
         with:
           python-version: '3.10'
       - name: 安装米沃奇脚本依赖
-        run: pip install requests
+        run: python3 -m pip install requests  # 强制Python3安装依赖
       - name: 执行米沃奇签到脚本
         env:
           MILWAUKEETOOL_TOKEN_LIST: ${{ secrets.MILWAUKEETOOL_TOKEN_LIST }}
           MILWAUKEETOOL_CLIENT_ID: ${{ secrets.MILWAUKEETOOL_CLIENT_ID }}
           WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
-        run: python milwaukeetool-sign.py
+        run: python3 milwaukeetool-sign.py  # 用Python3执行脚本
