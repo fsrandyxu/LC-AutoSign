@@ -18,7 +18,7 @@ SEND_KEY_LIST = os.getenv('SEND_KEY_LIST', '')
 
 # 【通知配置】企业微信 Webhook 地址
 # 请替换为你自己的 key (替换掉示例中的 key)
-WEBHOOK_URL = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=693axxx6-848f-49ba-a110-20ae080baf95"
+WEBHOOK_URL = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=00a9ed23-19e7-489b-b7b8-d7a4a6ae8cbe"
 
 # 【调试开关】True: 打印完整返回JSON; False: 仅失败时打印66cc63a1-0679-9888-3146-0b13a88d9901
 SHOW_RAW_RESPONSE = True
