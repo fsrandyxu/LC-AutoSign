@@ -1,0 +1,22 @@
+name: milwaukeetool Auto Sign - 2
+
+on:
+  schedule:
+    - cron: '5 16,22,4,10 * * *'  # 每 6 小时执行一次，UTC 时间
+
+  workflow_dispatch:
+
+jobs:
+  sign:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Run Sign Script - 账号3675
+      env:
+        SEND_KEY_LIST_2: ${{ secrets.SEND_KEY_LIST }}
+        MILWAUKEETOOL_CLIENT_ID_2: ${{ secrets.MILWAUKEETOOL_CLIENT_ID_2 }}
+        MILWAUKEETOOL_TOKEN_LIST_2: ${{ secrets.MILWAUKEETOOL_TOKEN_LIST_2 }}
+      run: |
+        python milwaukeetool-sign-2.py
