@@ -15,7 +15,6 @@ jobs:
 
     - name: Run Sign Script - 账号3675
       env:
-        SEND_KEY_LIST_2: ${{ secrets.SEND_KEY_LIST }}
         MILWAUKEETOOL_CLIENT_ID_2: ${{ secrets.MILWAUKEETOOL_CLIENT_ID_2 }}
         MILWAUKEETOOL_TOKEN_LIST_2: ${{ secrets.MILWAUKEETOOL_TOKEN_LIST_2 }}
       run: |
