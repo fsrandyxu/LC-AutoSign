@@ -377,7 +377,7 @@ def process_account(account_info, index, total, failed_list):
 
 def main():
     print("=" * 60)
-    print(f"🚀 账号3675批量签到启动 | 模式: {GLOBAL_METHOD}")
+    print(f"🚀 账号3675签到启动 | 模式: {GLOBAL_METHOD}")
     print(f"📅 时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 60)
 
