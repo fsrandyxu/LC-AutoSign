@@ -1,34 +1,29 @@
 name: milwaukeetool Auto Sign
 on:
   schedule:
-    - cron: '0 16,22,4,10 * * *'  # 保留你原有的6小时定时规则
-  workflow_dispatch:  # 保留手动触发功能
-
+    - cron: '0 16,22,4,10 * * *'
+  workflow_dispatch:
 jobs:
   sign:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0  # 解决代码拉取不完整的核心配置
-
-    - name: Set up Python 3.9
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.9'  # 移除cache配置，消除依赖文件警告
-
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install requests  # 仅安装脚本必需的requests库
-
-    - name: Run Sign Script
-      env:
-        # 映射你仓库Secrets中的所有变量，和脚本完全匹配
-        SEND_KEY_LIST: ${{ secrets.SEND_KEY_LIST }}
-        MILWAUKEETOOL_CLIENT_ID: ${{ secrets.MILWAUKEETOOL_CLIENT_ID }}
-        MILWAUKEETOOL_TOKEN_LIST: ${{ secrets.MILWAUKEETOOL_TOKEN_LIST }}
-        WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
-      run: |
-        python milwaukeetool-sign.py  # 执行根目录的脚本，路径和你上传的一致
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+      - name: Run Sign Script
+        env:
+          SEND_KEY_LIST: ${{ secrets.SEND_KEY_LIST }}
+          MILWAUKEETOOL_CLIENT_ID: ${{ secrets.MILWAUKEETOOL_CLIENT_ID }}
+          MILWAUKEETOOL_TOKEN_LIST: ${{ secrets.MILWAUKEETOOL_TOKEN_LIST }}
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+        run: |
+          python milwaukeetool-sign.py
