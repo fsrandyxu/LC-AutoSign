@@ -11,7 +11,7 @@ GLOBAL_METHOD = "add.signon.item"
 GLOBAL_STYPE = 1
 SEND_KEY_LIST = os.getenv('SEND_KEY_LIST', '')
 # 企业微信Webhook（直接填完整的真实URL，不要留示例key）
-WEBHOOK_URL = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=你的真实群机器人key"
+WEBHOOK_URL = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=00a9ed23-19e7-489b-b7b8-d7a4a6ae8cbe"
 SHOW_RAW_RESPONSE = True
 
 SECRET = "36affdc58f50e1035649abc808c22b48"
