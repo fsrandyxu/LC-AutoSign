@@ -343,6 +343,7 @@ def process_account(account_info, index, total, failed_list):
             print(f"{signResult}")
         
             if signStatus == 200:
+                SEND_KEY_LIST = SEND_KEY_LIST.split(',')[0].strip()
                 print(f"📤 检测到有签到，准备发送通知...{SEND_KEY_LIST}")
                 
                 response = send_msg_by_server(SEND_KEY_LIST, "milwaukeetool签到汇总", signResult)
