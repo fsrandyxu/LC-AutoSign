@@ -321,7 +321,6 @@ def process_account(account_info, index, total, failed_list):
             if SHOW_RAW_RESPONSE:
                 print(f"      └─ 返回: {json.dumps(resp_json, ensure_ascii=False)}")
 
-            try:
                 print("\n📢 开始检查签到天数")
             delay = random.uniform(1.0, 2.5)
             print(f"      ⏳ 等待 {delay:.1f}s...")
@@ -368,13 +367,6 @@ def process_account(account_info, index, total, failed_list):
         short_msg = msg if len(msg) < 50 else msg[:47] + "..."
         failed_list.append((账号3675, f"{short_msg} (Code:{code})"))
 return False
-
-        except Exception as e:
-        err_msg = str(e)
-        print(f"      ❌ 结果: 网络/系统错误 - {err_msg}")
-        failed_list.append("milwaukeetool签到任务-账号3675", f"网络错误:{err_msg}")
-        return False
-
 
 def main():
     print("=" * 60)
