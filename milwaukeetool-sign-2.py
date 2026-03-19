@@ -358,8 +358,8 @@ def process_account(account_info, index, total, failed_list):
             print(f"⏭️ SendKey... 组内无金豆获取，跳过通知")
     
 
-            return True
-        else:
+                return True
+            else:
         print(f"      ⚠️ 结果: 失败 (Code:{code}) | {msg}")
         # 失败时强制打印完整返回
         print(f"      └─ 完整返回:\n{json.dumps(resp_json, ensure_ascii=False, indent=4)}")
@@ -369,7 +369,7 @@ def process_account(account_info, index, total, failed_list):
         failed_list.append((账号3675, f"{short_msg} (Code:{code})"))
 return False
 
-    except Exception as e:
+        except Exception as e:
         err_msg = str(e)
         print(f"      ❌ 结果: 网络/系统错误 - {err_msg}")
         failed_list.append("milwaukeetool签到任务-账号3675", f"网络错误:{err_msg}")
