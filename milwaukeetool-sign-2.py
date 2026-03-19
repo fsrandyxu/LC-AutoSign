@@ -342,7 +342,7 @@ def process_account(account_info, index, total, failed_list):
             resp_json = response.json()
             signResult = format_sign_status(resp_json)
             print(f"{signResult}")
-        if signStatus == 200:
+            if signStatus == 200:
             SEND_KEY_LIST = os.getenv("SEND_KEY_LIST", "")  # 从环境变量获取，无则设为空
             SEND_KEY_LIST = SEND_KEY_LIST.split(',')[0].strip()
             print(f"📤 检测到有签到，准备发送通知...{SEND_KEY_LIST}")
@@ -359,8 +359,8 @@ def process_account(account_info, index, total, failed_list):
             print(f"⏭️ SendKey... 组内无金豆获取，跳过通知")
     
 
-        return True
-    else:
+            return True
+        else:
         print(f"      ⚠️ 结果: 失败 (Code:{code}) | {msg}")
         # 失败时强制打印完整返回
         print(f"      └─ 完整返回:\n{json.dumps(resp_json, ensure_ascii=False, indent=4)}")
