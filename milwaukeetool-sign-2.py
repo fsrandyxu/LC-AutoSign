@@ -343,6 +343,7 @@ def process_account(account_info, index, total, failed_list):
             print(f"{signResult}")
         
             if signStatus == 200:
+                SEND_KEY_LIST = os.getenv("SEND_KEY_LIST", "")  # 从环境变量获取，无则设为空
                 SEND_KEY_LIST = SEND_KEY_LIST.split(',')[0].strip()
                 print(f"📤 检测到有签到，准备发送通知...{SEND_KEY_LIST}")
                 
@@ -367,12 +368,12 @@ def process_account(account_info, index, total, failed_list):
             # 记录失败信息用于通知
             short_msg = msg if len(msg) < 50 else msg[:47] + "..."
             failed_list.append((账号3675, f"{short_msg} (Code:{code})"))
-            return False
+    return False
 
     except Exception as e:
         err_msg = str(e)
         print(f"      ❌ 结果: 网络/系统错误 - {err_msg}")
-        failed_list.append((name, f"网络错误: {err_msg}"))
+        failed_list.append("milwaukeetool签到任务-账号3675", f"网络错误:{err_msg}")
         return False
 
 
