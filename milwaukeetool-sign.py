@@ -343,7 +343,10 @@ def process_account(account_info, index, total, failed_list):
             print(f"{signResult}")
         
             if signStatus == 200:
-                SEND_KEY_LIST = SEND_KEY_LIST.split(',')[0].strip()
+                # 先定义默认值，避免未赋值报错，替换为实际通知key（多个用逗号分隔）
+SEND_KEY_LIST = os.getenv("SEND_KEY_LIST", "")  # 从环境变量获取，无则为空
+SEND_KEY_LIST = [k.strip() for k in SEND_KEY_LIST.split(',') if k.strip()]  # 处理为非空列表
+
                 print(f"📤 检测到有签到，准备发送通知...{SEND_KEY_LIST}")
                 
                 response = send_msg_by_server(SEND_KEY_LIST, "milwaukeetool签到汇总", signResult)
@@ -372,7 +375,9 @@ def process_account(account_info, index, total, failed_list):
     except Exception as e:
         err_msg = str(e)
         print(f"      ❌ 结果: 网络/系统错误 - {err_msg}")
-        failed_list.append((name, f"网络错误: {err_msg}"))
+        # 用固定名称替代未定义的name，保持逻辑不变
+failed_list.append("milwaukee签到任务", f"网络错误:{err_msg}")
+
         return False
 
 
