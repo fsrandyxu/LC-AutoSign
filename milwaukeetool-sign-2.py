@@ -321,7 +321,8 @@ def process_account(account_info, index, total, failed_list):
             if SHOW_RAW_RESPONSE:
                 print(f"      └─ 返回: {json.dumps(resp_json, ensure_ascii=False)}")
 
-            #--------
+            try:
+                #--------
             print("\n📢 开始检查签到天数")
             delay = random.uniform(1.0, 2.5)
             print(f"      ⏳ 等待 {delay:.1f}s...")
@@ -341,34 +342,33 @@ def process_account(account_info, index, total, failed_list):
             resp_json = response.json()
             signResult = format_sign_status(resp_json)
             print(f"{signResult}")
-        
-            if signStatus == 200:
-                SEND_KEY_LIST = os.getenv("SEND_KEY_LIST", "")  # 从环境变量获取，无则设为空
-                SEND_KEY_LIST = SEND_KEY_LIST.split(',')[0].strip()
-                print(f"📤 检测到有签到，准备发送通知...{SEND_KEY_LIST}")
-                
-                response = send_msg_by_server(SEND_KEY_LIST, "milwaukeetool账号3675签到汇总", signResult)
-                
-                if response and response.get('code') == 0:
-                    print(f"✅ 通知发送成功！消息ID: {response.get('data', {}).get('pushid', '')}")
-                    notification_sent = True
-                else:
-                    error_msg = response.get('message') if response else '未知错误'
-                    print(f"❌ 通知发送失败！错误: {error_msg}")
+        if signStatus == 200:
+            SEND_KEY_LIST = os.getenv("SEND_KEY_LIST", "")  # 从环境变量获取，无则设为空
+            SEND_KEY_LIST = SEND_KEY_LIST.split(',')[0].strip()
+            print(f"📤 检测到有签到，准备发送通知...{SEND_KEY_LIST}")
+            
+            response = send_msg_by_server(SEND_KEY_LIST, "milwaukeetool账号3675签到汇总", signResult)
+            
+            if response and response.get('code') == 0:
+                print(f"✅ 通知发送成功！消息ID: {response.get('data', {}).get('pushid', '')}")
+                notification_sent = True
             else:
-                print(f"⏭️ SendKey... 组内无金豆获取，跳过通知")
-        
-
-            return True
+                error_msg = response.get('message') if response else '未知错误'
+                print(f"❌ 通知发送失败！错误: {error_msg}")
         else:
-            print(f"      ⚠️ 结果: 失败 (Code:{code}) | {msg}")
-            # 失败时强制打印完整返回
-            print(f"      └─ 完整返回:\n{json.dumps(resp_json, ensure_ascii=False, indent=4)}")
+            print(f"⏭️ SendKey... 组内无金豆获取，跳过通知")
+    
 
-            # 记录失败信息用于通知
-            short_msg = msg if len(msg) < 50 else msg[:47] + "..."
-            failed_list.append((账号3675, f"{short_msg} (Code:{code})"))
-    return False
+        return True
+    else:
+        print(f"      ⚠️ 结果: 失败 (Code:{code}) | {msg}")
+        # 失败时强制打印完整返回
+        print(f"      └─ 完整返回:\n{json.dumps(resp_json, ensure_ascii=False, indent=4)}")
+
+        # 记录失败信息用于通知
+        short_msg = msg if len(msg) < 50 else msg[:47] + "..."
+        failed_list.append((账号3675, f"{short_msg} (Code:{code})"))
+return False
 
     except Exception as e:
         err_msg = str(e)
