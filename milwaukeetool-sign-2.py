@@ -322,7 +322,7 @@ def process_account(account_info, index, total, failed_list):
                 print(f"      └─ 返回: {json.dumps(resp_json, ensure_ascii=False)}")
 
             try:
-                #--------
+            #--------
             print("\n📢 开始检查签到天数")
             delay = random.uniform(1.0, 2.5)
             print(f"      ⏳ 等待 {delay:.1f}s...")
