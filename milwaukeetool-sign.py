@@ -376,7 +376,7 @@ def process_account(account_info, index, total, failed_list):
         err_msg = str(e)
         print(f"      ❌ 结果: 网络/系统错误 - {err_msg}")
         # 用固定名称替代未定义的name，保持逻辑不变
-    failed_list.append("milwaukee签到任务", f"网络错误:{err_msg}")
+    failed_list.append("milwaukeetool签到任务", f"网络错误:{err_msg}")
 
         return False
 
