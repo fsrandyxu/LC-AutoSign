@@ -329,6 +329,45 @@ def main():
     print(f"📅 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 60)
 
+    # ========== 新增：每日仅签1次 核心逻辑 ==========
+    import datetime
+    import os
+    today = datetime.date.today().strftime("%Y-%m-%d")
+    # 用临时文件记录今日是否已签到（GitHub Actions 每次执行是新环境，改用日志判断）
+    # 替代方案：读取签到结果里的「已签到」关键词，判断今日是否已签
+    sign_result = ""
+    try:
+        # 先执行一次轻量查询，判断是否已签到（避免重复执行完整流程）
+        tokenList = [t.strip() for t in MILWAUKEETOOL_TOKEN_LIST.split(',') if t.strip()]
+        clientIdList = [cid.strip() for cid in MILWAUKEETOOL_CLIENT_ID.split(',') if cid.strip()]
+        if tokenList and clientIdList:
+            # 取第一个账号查询签到状态
+            token = tokenList[0]
+            cid = clientIdList[0]
+            now = datetime.now()
+            timestamp_str = now.strftime("%Y-%m-%d %H:%M:%S")
+            payload = {
+                "token": token,
+                "client_id": cid,
+                "appkey": APPKEY,
+                "format": FORMAT,
+                "timestamp": timestamp_str,
+                "platform": PLATFORM,
+                "method": "get.signon.list"  # 仅查询，不签到
+            }
+            payload["sign"] = generate_sign(payload)
+            resp = requests.post(URL, headers=HEADERS, json=payload, timeout=10)
+            resp_json = resp.json()
+            sign_data = resp_json.get('data', {})
+            sign_status = sign_data.get('SigninStatus', 0)
+            if sign_status == 1:
+                print(f"✅ 检测到今日已签到（SigninStatus=1），本次执行跳过")
+                print("=" * 60)
+                return  # 直接退出，不执行后续签到
+    except Exception as e:
+        print(f"⚠️  查询签到状态失败，继续执行完整流程：{str(e)}")
+    # ========== 防重复逻辑结束 ==========
+
     success_cnt, total_cnt = processAccount()
     all_result_str = "\n\n".join(RESULT_LOG)
     sendNotification()
