@@ -119,38 +119,38 @@ def format_sign_status(json_data, client_id=None):
 
 
 # ========== 企业微信通知 ==========
-def send_wechat_notification(failed_accounts, total_count, success_count):
-    if not WECHAT_WEBHOOK_URL or WECHAT_WEBHOOK_URL.strip() == "":
-        print("\n⚠️  未配置环境变量 WECHAT_WEBHOOK_URL，跳过企业微信推送")
+def send_dingtalk_notification(failed_accounts, total_count, success_count, all_result):
+    if not DINGTALK_WEBHOOK_URL or DINGTALK_WEBHOOK_URL.strip() == "":
+        print("\n⚠️  未配置环境变量 DINGTALK_WEBHOOK_URL，跳过钉钉推送")
         return
 
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     fail_details = "\n".join([f"• {cid}: {reason}" for cid, reason in failed_accounts]) if failed_accounts else "无失败"
 
-    content = (
-        f"🤖 Milwaukee 签到任务执行报告\n"
-        f"📅 时间: {now_str}\n"
-        f"--------------------------\n"
-        f"✅ 成功: {success_count} 个\n"
-        f"❌ 失败: {len(failed_accounts)} 个\n"
-        f"📦 总数: {total_count} 个\n"
-        f"--------------------------\n"
-        f"⚠️ 失败详情:\n{fail_details}"
-    )
+    text = (
+        f"### Milwaukee 签到结果\n"
+        f"**时间**：{now_str}\n\n"
+        f"✅ 成功：{success_count}/{total_count}\n"
+        f"❌ 失败：{len(failed_accounts)}/{total_count}\n\n"
+        f"**失败详情**：\n{fail_details}"
+    )  # 移除完整结果展示
 
-    payload = {
-        "msgtype": "text",
-        "text": {"content": content}
+    msg = {
+        "msgtype": "markdown",
+        "markdown": {
+            "title": "Milwaukee签到通知",
+            "text": text
+        }
     }
 
     try:
-        resp = requests.post(WECHAT_WEBHOOK_URL, json=payload, timeout=5)
+        resp = requests.post(DINGTALK_WEBHOOK_URL, json=msg, timeout=5)
         if resp.status_code == 200 and resp.json().get("errcode") == 0:
-            print("\n✅ 企业微信通知发送成功")
+            print("✅ 钉钉通知发送成功")
         else:
-            print(f"\n❌ 企业微信通知失败: {resp.text}")
+            print(f"❌ 钉钉通知失败: {resp.text}")
     except Exception as e:
-        print(f"\n❌ 企业微信发送异常: {str(e)}")
+        print(f"❌ 钉钉发送异常: {str(e)}")
 
 
 # ========== 钉钉机器人通知 ==========
