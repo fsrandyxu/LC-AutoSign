@@ -22,7 +22,7 @@ RESULT_LOG = []
 WEBHOOK_URL = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=SCT307262TeHVUvc0ZtawQJDaUCTHe3ygm"
 
 # 钉钉机器人（在这里填你的钉钉Webhook地址）
-DINGTALK_WEBHOOK_URL = "https://oapi.dingtalk.com/robot/send?access_token=你的钉钉token"
+DINGTALK_WEBHOOK_URL = "https://oapi.dingtalk.com/robot/send?access_token=1c473f63f85f58a8ccc8a09c34189733521c907f312c9a8a10f178e08a156c01"
 
 SHOW_RAW_RESPONSE = True
 
@@ -69,7 +69,7 @@ def format_sign_status(json_data, client_id=None):
 
         if data.get('status') != 200:
             cid = f" | client_id: {client_id}" if client_id is not None else ""
-            return f"❌ 錯誤：API 回應異常 (狀態碼: {data.get('status')}){cid}"
+            return f"❌ 错误：API 回应异常 (状态码: {data.get('status')}){cid}"
 
         sign_data = data.get('data', {})
         sign_status = sign_data.get('SigninStatus', 0)
@@ -81,42 +81,42 @@ def format_sign_status(json_data, client_id=None):
 
         output = []
         output.append("=" * 50)
-        output.append(" 📋 簽到系統狀態報告 ".center(48, "="))
+        output.append(" 📋 签到系统状态报告 ".center(48, "="))
         output.append("=" * 50)
         output.append("")
 
-        status_text = "✅ 已簽到" if sign_status == 1 else "❌ 未簽到"
-        output.append("【基本資訊】")
+        status_text = "✅ 已签到" if sign_status == 1 else "❌ 未签到"
+        output.append("【基本资讯】")
         if client_id is not None:
             output.append(f"  🆔 client_id：{client_id}")
-        output.append(f"  🔐 簽到狀態：{status_text}")
-        output.append(f"  📊 連續簽到：{sign_count} 天")
-        output.append(f"  📅 簽到總數：{len(items)} 天")
+        output.append(f"  🔐 签到状态：{status_text}")
+        output.append(f"  📊 连续签到：{sign_count} 天")
+        output.append(f"  📅 签到总数：{len(items)} 天")
         output.append("")
 
         if items:
-            output.append("【簽到記錄】")
+            output.append("【签到记录】")
             sorted_items = sorted(items)
             for date in sorted_items:
                 output.append(f"  📆 {date} ✅")
         else:
-            output.append("【簽到記錄】")
-            output.append("  📭 暫無簽到記錄")
+            output.append("【签到记录】")
+            output.append("  📭 暂无签到记录")
 
         output.append("")
-        output.append("【使用統計】")
-        output.append(f"  📤 今日發送：{send_num}")
+        output.append("【使用统计】")
+        output.append(f"  📤 今日发送：{send_num}")
         output.append(f"  📥 今日使用：{used_num}")
-        output.append(f"  💾 可用額度：{available_num}")
+        output.append(f"  💾 可用额度：{available_num}")
         output.append("")
         output.append("=" * 50)
-        output.append(f" 報告時間：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        output.append(f" 报告时间：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         output.append("=" * 50)
 
         return "\n".join(output)
 
     except Exception as e:
-        return f"❌ 格式化錯誤：{str(e)}"
+        return f"❌ 格式化错误：{str(e)}"
 
 
 # ========== 企业微信通知 ==========
@@ -235,7 +235,7 @@ def signAndList(token, client_id, account_index=1):
         msg = resp_json.get("msg", "") or resp_json.get("message", "") or str(resp_json)
 
         is_success = False
-        if code == 200 or "成功" in msg or "已签到" in msg or "已簽到" in msg:
+        if code == 200 or "成功" in msg or "已签到" in msg or "已签到" in msg:
             is_success = True
 
         # 无论成功失败都加入推送日志
@@ -247,7 +247,7 @@ def signAndList(token, client_id, account_index=1):
             if SHOW_RAW_RESPONSE:
                 print(f"      └─ 返回: {json.dumps(resp_json, ensure_ascii=False)}")
 
-            print("\n📢 開始檢查簽到天數")
+            print("\n📢 开始检查签到天数")
             time.sleep(random.uniform(1.0, 2.5))
             payload2 = {
                 "token": token,
