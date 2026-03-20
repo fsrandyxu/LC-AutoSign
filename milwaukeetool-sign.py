@@ -120,13 +120,21 @@ def format_sign_status(json_data, client_id=None):
 
 # ========== 企业微信通知 ==========
 def send_wechat_notification(failed_accounts, total_count, success_count):
+    # 1. 检查配置，无配置则跳过（原有逻辑）
     if not WECHAT_WEBHOOK_URL or WECHAT_WEBHOOK_URL.strip() == "":
         print("\n⚠️  未配置环境变量 WECHAT_WEBHOOK_URL，跳过企业微信推送")
         return
 
+    # 2. 构造基础信息（原有逻辑）
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     fail_details = "\n".join([f"• {cid}: {reason}" for cid, reason in failed_accounts]) if failed_accounts else "无失败"
+    
+    # 3. 新增：拼接账号详情（仅这部分是新增逻辑）
+    account_details = ""
+    if RESULT_LOG:  # 兼容无日志的情况，避免报错
+        account_details = "\n\n📋 账号签到详情：\n" + "\n".join(RESULT_LOG)
 
+    # 4. 构造通知内容（原有基础上增加账号详情）
     content = (
         f"🤖 Milwaukee 签到任务执行报告\n"
         f"📅 时间: {now_str}\n"
@@ -136,8 +144,10 @@ def send_wechat_notification(failed_accounts, total_count, success_count):
         f"📦 总数: {total_count} 个\n"
         f"--------------------------\n"
         f"⚠️ 失败详情:\n{fail_details}"
+        f"{account_details}"  # 新增行：展示账号信息
     )
 
+    # 5. 发送请求（原有逻辑，无改动）
     payload = {
         "msgtype": "text",
         "text": {"content": content}
