@@ -326,37 +326,7 @@ def sendNotification():
 def main():
     print("=" * 60)
     print("🚀 Milwaukee 签到（全环境变量版）")
-    print(f"📅 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")  # 改回你原来的写法
-    print("=" * 60)
-
-    # 完全恢复你原来的逻辑，删掉所有防重复代码
-    success_cnt, total_cnt = processAccount()
-    all_result_str = "\n\n".join(RESULT_LOG)
-    sendNotification()
-    send_wechat_notification(FAILED_LOG, total_cnt, success_cnt)
-    send_dingtalk_notification(FAILED_LOG, total_cnt, success_cnt, all_result_str)
-
-    print("\n" + "=" * 60)
-    print(f"🏁 完成 | 成功 {success_cnt}/{total_cnt} | 失败 {len(FAILED_LOG)}")
-    print("=" * 60)
-    success_cnt, total_cnt = processAccount()
-    all_result_str = "\n\n".join(RESULT_LOG)
-    sendNotification()
-    send_wechat_notification(FAILED_LOG, total_cnt, success_cnt)
-    send_dingtalk_notification(FAILED_LOG, total_cnt, success_cnt, all_result_str)
-
-    print("\n" + "=" * 60)
-    print(f"🏁 完成 | 成功 {success_cnt}/{total_cnt} | 失败 {len(FAILED_LOG)}")
-    print("=" * 60)
-
-    success_cnt, total_cnt = processAccount()
-    all_result_str = "\n\n".join(RESULT_LOG)
-    sendNotification()
-    send_wechat_notification(FAILED_LOG, total_cnt, success_cnt)
-    send_dingtalk_notification(FAILED_LOG, total_cnt, success_cnt, all_result_str)
-
-    print("\n" + "=" * 60)
-    print(f"🏁 完成 | 成功 {success_cnt}/{total_cnt} | 失败 {len(FAILED_LOG)}")
+    print(f"📅 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 60)
 
     success_cnt, total_cnt = processAccount()
