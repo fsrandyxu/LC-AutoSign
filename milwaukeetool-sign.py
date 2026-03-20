@@ -324,31 +324,23 @@ def sendNotification():
 
 
 def main():
-    # 提前导入 datetime（解决 UnboundLocalError）
-    import datetime
-    import os
-    import requests  # 确保 requests 也能正常使用
-    
     print("=" * 60)
     print("🚀 Milwaukee 签到（全环境变量版）")
-    print(f"📅 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"📅 {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 60)
 
-    # ========== 新增：每日仅签1次 核心逻辑 ==========
-    today = datetime.date.today().strftime("%Y-%m-%d")
-    # 先查询签到状态，判断是否已签
-    is_signed = False
-    try:
-        tokenList = [t.strip() for t in MILWAUKEETOOL_TOKEN_LIST.split(',') if t.strip()]
-        clientIdList = [cid.strip() for cid in MILWAUKEETOOL_CLIENT_ID.split(',') if cid.strip()]
-        
-        if tokenList and clientIdList:
-            # 取第一个账号查询签到状态
-            token = tokenList[0]
-            cid = clientIdList[0]
-            now = datetime.datetime.now()  # 用完整的 datetime.datetime 避免混淆
+    # ========== 极简版：每日仅签1次（靠日志关键词判断） ==========
+    # 先执行一次轻量签到（只跑第一个账号），看是否已签
+    tokenList = [t.strip() for t in MILWAUKEETOOL_TOKEN_LIST.split(',') if t.strip()]
+    clientIdList = [cid.strip() for cid in MILWAUKEETOOL_CLIENT_ID.split(',') if cid.strip()]
+    
+    if tokenList and clientIdList:
+        # 临时跑第一个账号，只判断状态，不推送
+        token = tokenList[0]
+        cid = clientIdList[0]
+        try:
+            now = datetime.datetime.now()
             timestamp_str = now.strftime("%Y-%m-%d %H:%M:%S")
-            
             payload = {
                 "token": token,
                 "client_id": cid,
@@ -356,22 +348,35 @@ def main():
                 "format": FORMAT,
                 "timestamp": timestamp_str,
                 "platform": PLATFORM,
-                "method": "get.signon.list"  # 仅查询，不签到
+                "method": "add.signon.item"
             }
+            payload["year"] = str(now.year)
+            payload["month"] = str(now.month)
+            payload["day"] = str(now.day)
+            payload["stype"] = GLOBAL_STYPE
             payload["sign"] = generate_sign(payload)
+            
             resp = requests.post(URL, headers=HEADERS, json=payload, timeout=10)
             resp_json = resp.json()
+            msg = resp_json.get("msg", "") or resp_json.get("message", "")
             
-            sign_data = resp_json.get('data', {})
-            sign_status = sign_data.get('SigninStatus', 0)
-            if sign_status == 1:
-                is_signed = True
-                print(f"✅ 检测到今日已签到（SigninStatus=1），本次执行跳过")
+            if "已签到" in msg or "成功" in msg and "重复" not in msg:
+                print(f"✅ 检测到今日已签到（{msg}），本次执行跳过")
                 print("=" * 60)
-                return  # 直接退出，不执行后续签到
-    except Exception as e:
-        print(f"⚠️  查询签到状态失败，继续执行完整流程：{str(e)}")
-    # ========== 防重复逻辑结束 ==========
+                return
+        except Exception as e:
+            print(f"⚠️  检测签到状态失败，继续执行完整流程：{str(e)}")
+
+    # ========== 原有逻辑完全保留 ==========
+    success_cnt, total_cnt = processAccount()
+    all_result_str = "\n\n".join(RESULT_LOG)
+    sendNotification()
+    send_wechat_notification(FAILED_LOG, total_cnt, success_cnt)
+    send_dingtalk_notification(FAILED_LOG, total_cnt, success_cnt, all_result_str)
+
+    print("\n" + "=" * 60)
+    print(f"🏁 完成 | 成功 {success_cnt}/{total_cnt} | 失败 {len(FAILED_LOG)}")
+    print("=" * 60)
 
     success_cnt, total_cnt = processAccount()
     all_result_str = "\n\n".join(RESULT_LOG)
