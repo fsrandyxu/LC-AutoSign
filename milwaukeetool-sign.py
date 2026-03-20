@@ -19,7 +19,7 @@ FAILED_LOG = []
 RESULT_LOG = []
 
 # 企业微信机器人
-WEBHOOK_URL = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=SCT307262TeHVUvc0ZtawQJDaUCTHe3ygm"
+WEBHOOK_URL = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=141b8171-8939-4558-b263-1f08e9a6fbd7"
 
 # 钉钉机器人（在这里填你的钉钉Webhook地址）
 DINGTALK_WEBHOOK_URL = "https://oapi.dingtalk.com/robot/send?access_token=1c473f63f85f58a8ccc8a09c34189733521c907f312c9a8a10f178e08a156c01"
