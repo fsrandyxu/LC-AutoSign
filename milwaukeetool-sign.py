@@ -13,7 +13,8 @@ GLOBAL_STYPE = 1
 
 MILWAUKEETOOL_TOKEN_LIST = os.getenv('MILWAUKEETOOL_TOKEN_LIST', '')
 MILWAUKEETOOL_CLIENT_ID = os.getenv('MILWAUKEETOOL_CLIENT_ID', '')
-SEND_KEY_LIST = os.getenv('SEND_KEY_LIST', '')
+# SEND_KEY_LIST = os.getenv('SEND_KEY_LIST', '')
+SERVERCHAN_SENDKEY = os.getenv('SERVERCHAN_SENDKEY', '')
 
 # ========== 通知渠道：全部从环境变量读取 ==========
 WECHAT_WEBHOOK_URL = os.getenv('WECHAT_WEBHOOK_URL', '')
@@ -304,9 +305,11 @@ def sendNotification():
     if not RESULT_LOG:
         RESULT_LOG.append("本次执行无任何账号返回信息")
 
-    keys = [k.strip() for k in SEND_KEY_LIST.split(",") if k.strip()]
-    if not keys:
-        print("📤 未配置 SEND_KEY_LIST")
+    # 只改这里：只用同一个 SERVERCHAN_SENDKEY
+    keys = [SERVERCHAN_SENDKEY.strip()]
+
+    if not keys or not keys[0]:
+        print("📤 未配置 SERVERCHAN_SENDKEY")
         return
 
     content = "\n\n".join(RESULT_LOG)
