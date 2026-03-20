@@ -5,12 +5,10 @@ import json
 import time
 import random
 import os
-from itertools import cycle
 from requests.exceptions import RequestException
-from collections import defaultdict
 
 TOKEN_LIST = os.getenv('TOKEN_LIST', '')
-SEND_KEY_LIST = os.getenv('SEND_KEY_LIST', '')
+SERVERCHAN_SENDKEY = os.getenv('SERVERCHAN_SENDKEY', '')
 
 # 接口配置
 url = 'https://m.jlc.com/api/activity/sign/signIn?source=3'
@@ -33,7 +31,7 @@ def mask_json_customer_code(data):
         new_data = {}
         for k, v in data.items():
             if k == "customerCode" and isinstance(v, str):
-                new_data[k] = v[:1] + "xxxxx" + v[-2:]  # 例: 1xxxxx8A
+                new_data[k] = v[:1] + "xxxxx" + v[-2:]
             else:
                 new_data[k] = mask_json_customer_code(v)
         return new_data
@@ -82,24 +80,18 @@ def sign_in(access_token):
         sign_response.raise_for_status()
         sign_result = sign_response.json()
 
-        # 打印签到响应 JSON（已脱敏）
-        # print(f"🔍 [账号{mask_account(customer_code)}] 签到响应JSON:")
-        # print(json.dumps(mask_json_customer_code(sign_result), indent=2, ensure_ascii=False))
-
         # 检查签到是否成功
         if not sign_result.get('success'):
             message = sign_result.get('message', '未知错误')
             if '已经签到' in message:
                 print(f"ℹ️ [账号{mask_account(customer_code)}] 今日已签到")
-                return None  # 今日已签到，不返回消息
+                return None
             else:
                 print(f"❌ [账号{mask_account(customer_code)}] 签到失败 - {message}")
-                return None  # 签到失败，不返回消息
+                return None
 
         # 解析签到数据
         data = sign_result.get('data', {})
-        
-        # 安全地获取 gainNum 和 status
         gain_num = data.get('gainNum') if data else None
         status = data.get('status') if data else None
 
@@ -138,85 +130,44 @@ def sign_in(access_token):
 # ======== 主函数 ========
 
 def main():
-    # 从 GitHub Secrets 获取配置
     AccessTokenList = [token.strip() for token in TOKEN_LIST.split(',') if token.strip()]
-    SendKeyList = [key.strip() for key in SEND_KEY_LIST.split(',') if key.strip()]
+    send_key = SERVERCHAN_SENDKEY.strip()
 
-    # 检查配置是否为空
     if not AccessTokenList:
-        print("❌ 请设置 TOKENS")
+        print("❌ 请设置 TOKEN_LIST")
         return
-        
-    if not SendKeyList:
-        print("❌ 请设置 SENDKEYS")
+
+    if not send_key:
+        print("❌ 请设置 SERVERCHAN_SENDKEY")
         return
-        
-    # 复制 SendKeyList 使其长度等于 AccessTokenList
-    # 使用 cycle 循环填充
-    if SendKeyList:
-        SendKeyList = [next(cycle(SendKeyList)) for _ in range(len(AccessTokenList))]
-    else:
-        SendKeyList = [''] * len(AccessTokenList)
-    
-    print(f"🔧 SendKeyList共发现 {SendKeyList}")
-    # 确保长度一致
-    min_length = min(len(AccessTokenList), len(SendKeyList))
-    AccessTokenList = AccessTokenList[:min_length]
-    SendKeyList = SendKeyList[:min_length]
 
-    print(f"🔧 共发现 {min_length} 个账号需要签到")
+    print(f"🔧 共发现 {len(AccessTokenList)} 个账号需要签到")
 
-    # 按 SendKey 分组
-    task_groups = defaultdict(list)
-    for access_token, send_key in zip(AccessTokenList, SendKeyList):
-        task_groups[send_key].append(access_token)
+    results = []
+    for i, token in enumerate(AccessTokenList):
+        print(f"\n📝 处理第 {i+1}/{len(AccessTokenList)} 个账号...")
 
-    print(f"📊 共分为 {len(task_groups)} 个通知组")
+        result = sign_in(token)
+        if result is not None:
+            results.append(result)
 
-    # 顺序执行签到任务
-    group_results = {}
+        if i < len(AccessTokenList) - 1:
+            wait_time = random.randint(5, 15)
+            print(f"⏳ 等待 {wait_time} 秒后处理下一个账号...")
+            time.sleep(wait_time)
 
-    for send_key, tokens in task_groups.items():
-        print(f"\n🚀 开始处理 SendKey: {send_key[:5]}... 的 {len(tokens)} 个账号")
-        results = []
-        
-        for i, token in enumerate(tokens):
-            print(f"📝 处理第 {i+1}/{len(tokens)} 个账号...")
-            
-            # 执行签到
-            result = sign_in(token)
-            if result is not None:
-                results.append(result)
-            
-            # 如果不是最后一个账号，则等待随机时间
-            if i < len(tokens) - 1:
-                wait_time = random.randint(5, 15)
-                print(f"⏳ 等待 {wait_time} 秒后处理下一个账号...")
-                time.sleep(wait_time)
-        
-        group_results[send_key] = results
-
-    # 推送通知 - 只在有获取到金豆时才发送
+    # 统一推送一条
     print("\n📬 开始检查是否需要发送通知...")
-    notification_sent = False
-    
-    for send_key, results in group_results.items():
-        if results:
-            content = "\n\n".join(results)
-            print(f"📤 检测到有金豆获取，准备发送通知给 SendKey: {send_key[:5]}...")
-            
-            response = send_msg_by_server(send_key, "嘉立创签到汇总", content)
-            
-            if response and response.get('code') == 0:
-                print(f"✅ 通知发送成功！消息ID: {response.get('data', {}).get('pushid', '')}")
-                notification_sent = True
-            else:
-                error_msg = response.get('message') if response else '未知错误'
-                print(f"❌ 通知发送失败！错误: {error_msg}")
+    if results:
+        content = "\n\n".join(results)
+        response = send_msg_by_server(send_key, "嘉立创签到汇总", content)
+
+        if response and response.get('code') == 0:
+            print(f"✅ 通知发送成功！消息ID: {response.get('data', {}).get('pushid', '')}")
         else:
-            print(f"⏭️ SendKey: {send_key[:5]}... 组内无金豆获取，跳过通知")
-    
-    if not notification_sent:
+            error_msg = response.get('message') if response else '未知错误'
+            print(f"❌ 通知发送失败！错误: {error_msg}")
+    else:
         print("ℹ️ 所有账号均未获取到金豆，无通知发送")
 
 
