@@ -2,7 +2,7 @@ name: milwaukeetool Auto Sign
 
 on:
   schedule:
-    - cron: '0 16,22,4,10 * * *'  # 每 6 小时执行一次，UTC 时间
+    - cron: '30 0,6,12,18 * * *'  # 每6小时执行一次，精准对应北京时间 08:30/14:30/20:30/次日02:30
   workflow_dispatch:  # 手动触发
 
 jobs:
