@@ -324,28 +324,31 @@ def sendNotification():
 
 
 def main():
+    # 提前导入 datetime（解决 UnboundLocalError）
+    import datetime
+    import os
+    import requests  # 确保 requests 也能正常使用
+    
     print("=" * 60)
     print("🚀 Milwaukee 签到（全环境变量版）")
     print(f"📅 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 60)
 
     # ========== 新增：每日仅签1次 核心逻辑 ==========
-    import datetime
-    import os
     today = datetime.date.today().strftime("%Y-%m-%d")
-    # 用临时文件记录今日是否已签到（GitHub Actions 每次执行是新环境，改用日志判断）
-    # 替代方案：读取签到结果里的「已签到」关键词，判断今日是否已签
-    sign_result = ""
+    # 先查询签到状态，判断是否已签
+    is_signed = False
     try:
-        # 先执行一次轻量查询，判断是否已签到（避免重复执行完整流程）
         tokenList = [t.strip() for t in MILWAUKEETOOL_TOKEN_LIST.split(',') if t.strip()]
         clientIdList = [cid.strip() for cid in MILWAUKEETOOL_CLIENT_ID.split(',') if cid.strip()]
+        
         if tokenList and clientIdList:
             # 取第一个账号查询签到状态
             token = tokenList[0]
             cid = clientIdList[0]
-            now = datetime.now()
+            now = datetime.datetime.now()  # 用完整的 datetime.datetime 避免混淆
             timestamp_str = now.strftime("%Y-%m-%d %H:%M:%S")
+            
             payload = {
                 "token": token,
                 "client_id": cid,
@@ -358,15 +361,27 @@ def main():
             payload["sign"] = generate_sign(payload)
             resp = requests.post(URL, headers=HEADERS, json=payload, timeout=10)
             resp_json = resp.json()
+            
             sign_data = resp_json.get('data', {})
             sign_status = sign_data.get('SigninStatus', 0)
             if sign_status == 1:
+                is_signed = True
                 print(f"✅ 检测到今日已签到（SigninStatus=1），本次执行跳过")
                 print("=" * 60)
                 return  # 直接退出，不执行后续签到
     except Exception as e:
         print(f"⚠️  查询签到状态失败，继续执行完整流程：{str(e)}")
     # ========== 防重复逻辑结束 ==========
+
+    success_cnt, total_cnt = processAccount()
+    all_result_str = "\n\n".join(RESULT_LOG)
+    sendNotification()
+    send_wechat_notification(FAILED_LOG, total_cnt, success_cnt)
+    send_dingtalk_notification(FAILED_LOG, total_cnt, success_cnt, all_result_str)
+
+    print("\n" + "=" * 60)
+    print(f"🏁 完成 | 成功 {success_cnt}/{total_cnt} | 失败 {len(FAILED_LOG)}")
+    print("=" * 60)
 
     success_cnt, total_cnt = processAccount()
     all_result_str = "\n\n".join(RESULT_LOG)
