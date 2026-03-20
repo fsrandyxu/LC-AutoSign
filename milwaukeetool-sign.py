@@ -15,14 +15,12 @@ MILWAUKEETOOL_TOKEN_LIST = os.getenv('MILWAUKEETOOL_TOKEN_LIST', '')
 MILWAUKEETOOL_CLIENT_ID = os.getenv('MILWAUKEETOOL_CLIENT_ID', '')
 SEND_KEY_LIST = os.getenv('SEND_KEY_LIST', '')
 
+# ========== 通知渠道：全部从环境变量读取 ==========
+WECHAT_WEBHOOK_URL = os.getenv('WECHAT_WEBHOOK_URL', '')
+DINGTALK_WEBHOOK_URL = os.getenv('DINGTALK_WEBHOOK_URL', '')
+
 FAILED_LOG = []
 RESULT_LOG = []
-
-# 企业微信机器人
-WEBHOOK_URL = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=141b8171-8939-4558-b263-1f08e9a6fbd7"
-
-# 钉钉机器人（在这里填你的钉钉Webhook地址）
-DINGTALK_WEBHOOK_URL = "https://oapi.dingtalk.com/robot/send?access_token=1c473f63f85f58a8ccc8a09c34189733521c907f312c9a8a10f178e08a156c01"
 
 SHOW_RAW_RESPONSE = True
 
@@ -121,8 +119,8 @@ def format_sign_status(json_data, client_id=None):
 
 # ========== 企业微信通知 ==========
 def send_wechat_notification(failed_accounts, total_count, success_count):
-    if not WEBHOOK_URL or WEBHOOK_URL.strip() == "":
-        print("\n⚠️  未配置企业微信Webhook")
+    if not WECHAT_WEBHOOK_URL or WECHAT_WEBHOOK_URL.strip() == "":
+        print("\n⚠️  未配置环境变量 WECHAT_WEBHOOK_URL，跳过企业微信推送")
         return
 
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -145,19 +143,19 @@ def send_wechat_notification(failed_accounts, total_count, success_count):
     }
 
     try:
-        resp = requests.post(WEBHOOK_URL, json=payload, timeout=5)
+        resp = requests.post(WECHAT_WEBHOOK_URL, json=payload, timeout=5)
         if resp.status_code == 200 and resp.json().get("errcode") == 0:
-            print("\n📢 企业微信通知发送成功")
+            print("\n✅ 企业微信通知发送成功")
         else:
-            print(f"\n⚠️  企业微信通知失败: {resp.text}")
+            print(f"\n❌ 企业微信通知失败: {resp.text}")
     except Exception as e:
-        print(f"\n⚠️  企业微信发送异常: {str(e)}")
+        print(f"\n❌ 企业微信发送异常: {str(e)}")
 
 
-# ========== 钉钉机器人通知（新增） ==========
+# ========== 钉钉机器人通知 ==========
 def send_dingtalk_notification(failed_accounts, total_count, success_count, all_result):
     if not DINGTALK_WEBHOOK_URL or DINGTALK_WEBHOOK_URL.strip() == "":
-        print("\n⚠️  未配置钉钉Webhook")
+        print("\n⚠️  未配置环境变量 DINGTALK_WEBHOOK_URL，跳过钉钉推送")
         return
 
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -169,7 +167,7 @@ def send_dingtalk_notification(failed_accounts, total_count, success_count, all_
         f"✅ 成功：{success_count}/{total_count}\n"
         f"❌ 失败：{len(failed_accounts)}/{total_count}\n\n"
         f"**失败详情**：\n{fail_details}\n\n"
-        f"**完整结果**：\n{all_result[:1500]}..."  # 防止过长
+        f"**完整结果**：\n{all_result[:1500]}..."
     )
 
     msg = {
@@ -183,11 +181,11 @@ def send_dingtalk_notification(failed_accounts, total_count, success_count, all_
     try:
         resp = requests.post(DINGTALK_WEBHOOK_URL, json=msg, timeout=5)
         if resp.status_code == 200 and resp.json().get("errcode") == 0:
-            print("📢 钉钉通知发送成功")
+            print("✅ 钉钉通知发送成功")
         else:
-            print(f"⚠️ 钉钉通知失败: {resp.text}")
+            print(f"❌ 钉钉通知失败: {resp.text}")
     except Exception as e:
-        print(f"⚠️ 钉钉发送异常: {str(e)}")
+        print(f"❌ 钉钉发送异常: {str(e)}")
 
 
 # ========== Server酱 ==========
@@ -235,10 +233,9 @@ def signAndList(token, client_id, account_index=1):
         msg = resp_json.get("msg", "") or resp_json.get("message", "") or str(resp_json)
 
         is_success = False
-        if code == 200 or "成功" in msg or "已签到" in msg or "已签到" in msg:
+        if code == 200 or "成功" in msg or "已签到" in msg:
             is_success = True
 
-        # 无论成功失败都加入推送日志
         result_line = f"【账号 {account_index}】client_id: {client_id}\n结果：{'✅ 成功' if is_success else '❌ 失败'}\n信息：{msg}"
         RESULT_LOG.append(result_line)
 
@@ -325,7 +322,7 @@ def sendNotification():
 
 def main():
     print("=" * 60)
-    print("🚀 Milwaukee 签到（成功失败全推送 + 钉钉+企业微信+Server酱）")
+    print("🚀 Milwaukee 签到（全环境变量版）")
     print(f"📅 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 60)
 
