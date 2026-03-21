@@ -1,37 +1,36 @@
 name: milwaukeetool Auto Sign
- 
+
 on:
-schedule:
- 
-cron: '30 22,4,10 * * *'  # 只改这里 → 北京时间 06:30 12:30 18:30
-workflow_dispatch:  # 手动触发
- 
+  schedule:
+    - cron: '30 22,4,10 * * *'  # 仅改这行：对应北京时间06:30/12:30/18:30
+  workflow_dispatch:  # 手动触发
+
 jobs:
-sign:
-runs-on: ubuntu-latest
-steps:
- 
-name: Checkout code
-uses: actions/checkout@v4
-name: Set up Python environment
-uses: actions/setup-python@v5
-with:
-python-version: '3.10'
-name: Install dependencies
-run: |
-python -m pip install --upgrade pip
-pip install requests
-name: Run Sign Script
-env:
-原有配置
- 
-SEND_KEY_LIST: ${{ secrets.SEND_KEY_LIST }}
-SERVERCHAN_SENDKEY: ${{ secrets.SERVERCHAN_SENDKEY }}
-MILWAUKEETOOL_CLIENT_ID: ${{ secrets.MILWAUKEETOOL_CLIENT_ID }}
-MILWAUKEETOOL_TOKEN_LIST: ${{ secrets.MILWAUKEETOOL_TOKEN_LIST }}
-新增：企业微信 + 钉钉 环境变量映射（关键修复）
- 
-WECHAT_WEBHOOK_URL: ${{ secrets.WECHAT_WEBHOOK_URL }}
-DINGTALK_WEBHOOK_URL: ${{ secrets.DINGTALK_WEBHOOK_URL }}
-run: |
-python milwaukeetool-sign.py
+  sign:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python environment
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'  # 指定Python版本，更稳定
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests  # 安装脚本依赖
+
+    - name: Run Sign Script
+      env:
+        # 原有配置
+        SEND_KEY_LIST: ${{ secrets.SEND_KEY_LIST }}
+        SERVERCHAN_SENDKEY: ${{ secrets.SERVERCHAN_SENDKEY }}
+        MILWAUKEETOOL_CLIENT_ID: ${{ secrets.MILWAUKEETOOL_CLIENT_ID }}
+        MILWAUKEETOOL_TOKEN_LIST: ${{ secrets.MILWAUKEETOOL_TOKEN_LIST }}
+        # 新增：企业微信 + 钉钉 环境变量映射（关键修复）
+        WECHAT_WEBHOOK_URL: ${{ secrets.WECHAT_WEBHOOK_URL }}
+        DINGTALK_WEBHOOK_URL: ${{ secrets.DINGTALK_WEBHOOK_URL }}
+      run: |
+        python milwaukeetool-sign.py
