@@ -2,10 +2,9 @@ name: Milwaukee签到
 
 on:
   schedule:
-    # 每天 3 个时间点（北京时间）
-    - cron: "0 1 * * *"   # 09:00
-    - cron: "0 9 * * *"   # 17:00
-    - cron: "0 13 * * *"  # 21:00
+    - cron: "0 1 * * *"   # 北京时间9:00
+    - cron: "0 9 * * *"   # 北京时间17:00
+    - cron: "0 13 * * *"  # 北京时间21:00
   workflow_dispatch:
 
 jobs:
@@ -15,7 +14,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.9'
 
       - name: 安装依赖
         run: pip install requests
@@ -23,6 +22,7 @@ jobs:
       - name: 执行签到
         run: python main.py
         env:
+          # 完全沿用你之前的环境变量名，一字不改
           MILWAUKEETOOL_TOKEN_LIST: ${{ secrets.MILWAUKEETOOL_TOKEN_LIST }}
           MILWAUKEETOOL_CLIENT_ID: ${{ secrets.MILWAUKEETOOL_CLIENT_ID }}
           SERVERCHAN_SENDKEY: ${{ secrets.SERVERCHAN_SENDKEY }}
