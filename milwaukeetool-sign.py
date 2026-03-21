@@ -21,7 +21,7 @@ DINGTALK_WEBHOOK_URL = os.getenv('DINGTALK_WEBHOOK_URL', '')
 
 FAILED_LOG = []
 RESULT_LOG = []
-NEED_SEND_NOTIFY = True  # 积分不变则设为False
+FILTERED_LOG = []  # 新增：存储需要推送的日志
 
 SHOW_RAW_RESPONSE = True
 
@@ -150,7 +150,7 @@ def format_sign_status(json_data, client_id=None):
         return f"❌ 格式化错误：{str(e)}"
 
 
-# ================= 你原版企业微信，不动 =================
+# ================= 你原版企业微信，修改过滤逻辑 =================
 def send_wechat_notification(failed_accounts, total_count, success_count):
     if not WECHAT_WEBHOOK_URL or WECHAT_WEBHOOK_URL.strip() == "":
         print("\n⚠️  未配置环境变量 WECHAT_WEBHOOK_URL，跳过企业微信推送")
@@ -159,9 +159,12 @@ def send_wechat_notification(failed_accounts, total_count, success_count):
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     fail_details = "\n".join([f"• {cid}: {reason}" for cid, reason in failed_accounts]) if failed_accounts else "无失败"
     
+    # 新增：过滤积分无变化的账号详情
     account_details = ""
-    if RESULT_LOG:
-        account_details = "\n\n📋 账号签到详情：\n" + "\n".join(RESULT_LOG)
+    if FILTERED_LOG:
+        account_details = "\n\n📋 账号签到详情：\n" + "\n".join(FILTERED_LOG)
+    else:
+        account_details = "\n\n📋 账号签到详情：\n无需要推送的账号（所有账号积分均无变化）"
 
     content = (
         f"🤖 Milwaukee 签到任务执行报告\n"
@@ -190,7 +193,7 @@ def send_wechat_notification(failed_accounts, total_count, success_count):
         print(f"\n❌ 企业微信发送异常: {str(e)}")
 
 
-# ================= 你原版钉钉，不动 =================
+# ================= 你原版钉钉，修改过滤逻辑 =================
 def send_dingtalk_notification(failed_accounts, total_count, success_count, all_result):
     if not DINGTALK_WEBHOOK_URL or DINGTALK_WEBHOOK_URL.strip() == "":
         print("\n⚠️  未配置环境变量 DINGTALK_WEBHOOK_URL，跳过钉钉推送")
@@ -199,13 +202,15 @@ def send_dingtalk_notification(failed_accounts, total_count, success_count, all_
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     fail_details = "\n".join([f"• {cid}: {reason}" for cid, reason in failed_accounts]) if failed_accounts else "无失败"
 
+    # 新增：使用过滤后的日志
+    filtered_result = "\n\n".join(FILTERED_LOG) if FILTERED_LOG else "无需要推送的账号（所有账号积分均无变化）"
     text = (
         f"### Milwaukee 签到结果\n"
         f"**时间**：{now_str}\n\n"
         f"✅ 成功：{success_count}/{total_count}\n"
         f"❌ 失败：{len(failed_accounts)}/{total_count}\n\n"
         f"**失败详情**：\n{fail_details}\n\n"
-        f"**完整结果**：\n{all_result[:1500]}..."
+        f"**完整结果**：\n{filtered_result[:1500]}..."
     )
 
     msg = {
@@ -226,7 +231,7 @@ def send_dingtalk_notification(failed_accounts, total_count, success_count, all_
         print(f"❌ 钉钉发送异常: {str(e)}")
 
 
-# ================= 你原版Server酱，不动 =================
+# ================= 你原版Server酱，修改过滤逻辑 =================
 def send_msg_by_server(send_key, title, content):
     push_url = f'https://sctapi.ftqq.com/{send_key}.send'
     data = {'text': title, 'desp': content}
@@ -237,11 +242,9 @@ def send_msg_by_server(send_key, title, content):
         return None
 
 
-# ================= 签到主逻辑（只加积分前后对比） =================
+# ================= 签到主逻辑（核心修改：单个账号判断） =================
 def signAndList(token, client_id, account_index=1):
-    global NEED_SEND_NOTIFY
-
-    # ++++++++++ 只加这里：签到前查积分 ++++++++++
+    # 签到前查积分
     before = get_points(token, client_id)
     time.sleep(random.uniform(0.5, 1))
 
@@ -281,19 +284,20 @@ def signAndList(token, client_id, account_index=1):
         if code == 200 or "成功" in msg or "已签到" in msg:
             is_success = True
 
-        # ++++++++++ 只加这里：签到后查积分 ++++++++++
+        # 签到后查积分
         after = get_points(token, client_id)
+        msg += f" | 签到前积分：{before} | 签到后积分：{after}"
 
-        # 积分没变 → 不发通知
+        # 核心：单个账号积分不变则标记，不加入推送日志
         if is_success and before == after and before != -1:
-            print("✅ 今日已签到，积分无变化，不发通知")
-            NEED_SEND_NOTIFY = False
-
-        # 展示积分（你原版没有，我加个简单显示）
-        msg += f" | 积分：{after}"
-
-        result_line = f"【账号 {account_index}】client_id: {client_id}\n结果：{'✅ 成功' if is_success else '❌ 失败'}\n信息：{msg}"
-        RESULT_LOG.append(result_line)
+            print(f"✅ 账号{account_index}：已签到，积分无变化，不推送该账号")
+            result_line = f"【账号 {account_index}】client_id: {client_id}\n结果：✅ 成功\n信息：{msg} | 备注：积分无变化，跳过推送"
+            RESULT_LOG.append(result_line)  # 保留总日志，用于本地查看
+        else:
+            print(f"✅ 账号{account_index}：正常推送")
+            result_line = f"【账号 {account_index}】client_id: {client_id}\n结果：{'✅ 成功' if is_success else '❌ 失败'}\n信息：{msg}"
+            RESULT_LOG.append(result_line)
+            FILTERED_LOG.append(result_line)  # 加入推送日志
 
         if is_success:
             print(f"      ✅ 结果: 成功 | {msg}")
@@ -326,7 +330,9 @@ def signAndList(token, client_id, account_index=1):
     except Exception as e:
         err = f"异常：{str(e)}"
         print(f"      ❌ {err}")
-        RESULT_LOG.append(f"【账号 {account_index}】client_id: {client_id}\n{err}")
+        result_line = f"【账号 {account_index}】client_id: {client_id}\n{err}"
+        RESULT_LOG.append(result_line)
+        FILTERED_LOG.append(result_line)  # 异常账号正常推送
         FAILED_LOG.append((client_id, err))
         return False
 
@@ -357,10 +363,10 @@ def processAccount():
     return success, min_len
 
 
-# ================= 通知加开关：积分不变不发 =================
+# ================= 通知逻辑：使用过滤后的日志 =================
 def sendNotification():
-    if not NEED_SEND_NOTIFY:
-        print("\n🔇 积分无变化，跳过全部通知")
+    if not FILTERED_LOG:
+        print("\n🔇 所有账号积分均无变化，跳过Server酱推送")
         return
 
     if not RESULT_LOG:
@@ -371,11 +377,11 @@ def sendNotification():
         print("📤 未配置 SERVERCHAN_SENDKEY")
         return
 
-    content = "\n\n".join(RESULT_LOG)
-    print(f"📤 准备推送全部结果...")
+    content = "\n\n".join(FILTERED_LOG)
+    print(f"📤 准备推送需要通知的账号...")
 
     for key in keys:
-        ret = send_msg_by_server(key, "Milwaukee 签到结果", content)
+        ret = send_msg_by_server(key, "Milwaukee 签到结果（仅推送积分变化账号）", content)
         if ret and ret.get("code") == 0:
             print(f"✅ Server酱推送成功")
         else:
@@ -383,11 +389,12 @@ def sendNotification():
 
 
 def main():
-    global NEED_SEND_NOTIFY
-    NEED_SEND_NOTIFY = True
+    # 每次运行清空过滤日志
+    global FILTERED_LOG
+    FILTERED_LOG = []
 
     print("=" * 60)
-    print("🚀 Milwaukee 签到（积分版）")
+    print("🚀 Milwaukee 签到（单账号积分过滤版）")
     print(f"📅 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 60)
 
@@ -399,7 +406,7 @@ def main():
     send_dingtalk_notification(FAILED_LOG, total_cnt, success_cnt, all_result_str)
 
     print("\n" + "=" * 60)
-    print(f"🏁 完成 | 成功 {success_cnt}/{total_cnt} | 失败 {len(FAILED_LOG)}")
+    print(f"🏁 完成 | 成功 {success_cnt}/{total_cnt} | 失败 {len(FAILED_LOG)} | 需推送账号 {len(FILTERED_LOG)}")
     print("=" * 60)
 
 
