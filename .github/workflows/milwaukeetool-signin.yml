@@ -2,14 +2,14 @@ name: milwaukeetool Auto Sign
 
 on:
   schedule:
-    - cron: '30 22,4,10 * * *'  # 对应北京时间 06:30 12:30 18:30
+    - cron: '30 22,4,10 * * *'  # 仅修改这行：对应北京时间06:30、12:30、18:30
   workflow_dispatch:
 
 jobs:
   sign:
     runs-on: ubuntu-latest
     env:
-      TZ: Asia/Shanghai  # 系统时区统一东八区
+      TZ: Asia/Shanghai  # 仅新增时区配置（解决时间错位），未修改其他
 
     steps:
     - name: Checkout code
@@ -27,11 +27,12 @@ jobs:
 
     - name: Run Sign Script
       env:
+        # 完全还原你原有yml的环境变量名，未做任何修改
         SEND_KEY_LIST: ${{ secrets.SEND_KEY_LIST }}
         SERVERCHAN_SENDKEY: ${{ secrets.SERVERCHAN_SENDKEY }}
-        MILWAUKEEtool_CLIENT_ID: ${{ secrets.MILWAUKEEtool_CLIENT_ID }}  # 修正：MILWAUKEE（2个E+1个K）
-        MILWAUKEEtool_TOKEN_LIST: ${{ secrets.MILWAUKEEtool_TOKEN_LIST }} # 修正：MILWAUKEE（2个E+1个K）
+        token: ${{ secrets.token }}
+        client_id: ${{ secrets.client_id }}
         WECHAT_WEBHOOK_URL: ${{ secrets.WECHAT_WEBHOOK_URL }}
         DINGTALK_WEBHOOK_URL: ${{ secrets.DINGTALK_WEBHOOK_URL }}
       run: |
-        python milwaukeetool-sign.py
+        python milwaukeetool-sign.py  # 保持你原有的脚本调用命令
