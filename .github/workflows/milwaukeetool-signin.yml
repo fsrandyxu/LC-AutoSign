@@ -9,7 +9,7 @@ jobs:
   sign:
     runs-on: ubuntu-latest
     env:
-      TZ: Asia/Shanghai  # 关键：系统时区统一东八区
+      TZ: Asia/Shanghai  # 系统时区统一东八区
 
     steps:
     - name: Checkout code
@@ -29,9 +29,9 @@ jobs:
       env:
         SEND_KEY_LIST: ${{ secrets.SEND_KEY_LIST }}
         SERVERCHAN_SENDKEY: ${{ secrets.SERVERCHAN_SENDKEY }}
-        MILWAUETOOL_CLIENT_ID: ${{ secrets.MILWAUETOOL_CLIENT_ID }}
-        MILWAUETOOL_TOKEN_LIST: ${{ secrets.MILWAUETOOL_TOKEN_LIST }}
+        MILWAUKEEtool_CLIENT_ID: ${{ secrets.MILWAUKEEtool_CLIENT_ID }}  # 修正：MILWAUKEE（2个E+1个K）
+        MILWAUKEEtool_TOKEN_LIST: ${{ secrets.MILWAUKEEtool_TOKEN_LIST }} # 修正：MILWAUKEE（2个E+1个K）
         WECHAT_WEBHOOK_URL: ${{ secrets.WECHAT_WEBHOOK_URL }}
         DINGTALK_WEBHOOK_URL: ${{ secrets.DINGTALK_WEBHOOK_URL }}
-      run:
+      run: |
         python milwaukeetool-sign.py
