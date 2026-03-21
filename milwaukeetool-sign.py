@@ -21,7 +21,8 @@ DINGTALK_WEBHOOK_URL = os.getenv('DINGTALK_WEBHOOK_URL', '')
 
 FAILED_LOG = []
 RESULT_LOG = []
-FILTERED_LOG = []  # 新增：存储需要推送的日志
+FILTERED_LOG = []  # 存储需要推送的日志
+SEND_ALL_NOTICE = True  # 核心开关：是否发起通知请求
 
 SHOW_RAW_RESPONSE = True
 
@@ -150,7 +151,7 @@ def format_sign_status(json_data, client_id=None):
         return f"❌ 格式化错误：{str(e)}"
 
 
-# ================= 你原版企业微信，修改过滤逻辑 =================
+# ================= 你原版企业微信，保留完整逻辑 =================
 def send_wechat_notification(failed_accounts, total_count, success_count):
     if not WECHAT_WEBHOOK_URL or WECHAT_WEBHOOK_URL.strip() == "":
         print("\n⚠️  未配置环境变量 WECHAT_WEBHOOK_URL，跳过企业微信推送")
@@ -159,12 +160,9 @@ def send_wechat_notification(failed_accounts, total_count, success_count):
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     fail_details = "\n".join([f"• {cid}: {reason}" for cid, reason in failed_accounts]) if failed_accounts else "无失败"
     
-    # 新增：过滤积分无变化的账号详情
     account_details = ""
     if FILTERED_LOG:
         account_details = "\n\n📋 账号签到详情：\n" + "\n".join(FILTERED_LOG)
-    else:
-        account_details = "\n\n📋 账号签到详情：\n无需要推送的账号（所有账号积分均无变化）"
 
     content = (
         f"🤖 Milwaukee 签到任务执行报告\n"
@@ -193,7 +191,7 @@ def send_wechat_notification(failed_accounts, total_count, success_count):
         print(f"\n❌ 企业微信发送异常: {str(e)}")
 
 
-# ================= 你原版钉钉，修改过滤逻辑 =================
+# ================= 你原版钉钉，保留完整逻辑 =================
 def send_dingtalk_notification(failed_accounts, total_count, success_count, all_result):
     if not DINGTALK_WEBHOOK_URL or DINGTALK_WEBHOOK_URL.strip() == "":
         print("\n⚠️  未配置环境变量 DINGTALK_WEBHOOK_URL，跳过钉钉推送")
@@ -202,8 +200,7 @@ def send_dingtalk_notification(failed_accounts, total_count, success_count, all_
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     fail_details = "\n".join([f"• {cid}: {reason}" for cid, reason in failed_accounts]) if failed_accounts else "无失败"
 
-    # 新增：使用过滤后的日志
-    filtered_result = "\n\n".join(FILTERED_LOG) if FILTERED_LOG else "无需要推送的账号（所有账号积分均无变化）"
+    filtered_result = "\n\n".join(FILTERED_LOG) if FILTERED_LOG else "无需要推送的账号"
     text = (
         f"### Milwaukee 签到结果\n"
         f"**时间**：{now_str}\n\n"
@@ -231,7 +228,7 @@ def send_dingtalk_notification(failed_accounts, total_count, success_count, all_
         print(f"❌ 钉钉发送异常: {str(e)}")
 
 
-# ================= 你原版Server酱，修改过滤逻辑 =================
+# ================= 你原版Server酱，保留完整逻辑 =================
 def send_msg_by_server(send_key, title, content):
     push_url = f'https://sctapi.ftqq.com/{send_key}.send'
     data = {'text': title, 'desp': content}
@@ -242,7 +239,7 @@ def send_msg_by_server(send_key, title, content):
         return None
 
 
-# ================= 签到主逻辑（核心修改：单个账号判断） =================
+# ================= 签到主逻辑（单个账号积分判断） =================
 def signAndList(token, client_id, account_index=1):
     # 签到前查积分
     before = get_points(token, client_id)
@@ -388,22 +385,34 @@ def sendNotification():
             print(f"❌ Server酱推送失败")
 
 
+# ================= 主函数（核心：控制是否发送所有通知） =================
 def main():
-    # 每次运行清空过滤日志
-    global FILTERED_LOG
+    global FILTERED_LOG, SEND_ALL_NOTICE
     FILTERED_LOG = []
+    SEND_ALL_NOTICE = True  # 初始化通知开关
 
     print("=" * 60)
-    print("🚀 Milwaukee 签到（单账号积分过滤版）")
+    print("🚀 Milwaukee 签到（最终版：积分不变不发通知）")
     print(f"📅 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 60)
 
     success_cnt, total_cnt = processAccount()
     all_result_str = "\n\n".join(RESULT_LOG)
     
-    sendNotification()
-    send_wechat_notification(FAILED_LOG, total_cnt, success_cnt)
-    send_dingtalk_notification(FAILED_LOG, total_cnt, success_cnt, all_result_str)
+    # 核心判断：无需要推送的账号则关闭所有通知
+    if not FILTERED_LOG:
+        SEND_ALL_NOTICE = False
+        print("\n🔇 所有账号积分均无变化，关闭所有通知渠道")
+    else:
+        SEND_ALL_NOTICE = True
+
+    # 仅当需要推送时才调用通知函数
+    if SEND_ALL_NOTICE:
+        sendNotification()
+        send_wechat_notification(FAILED_LOG, total_cnt, success_cnt)
+        send_dingtalk_notification(FAILED_LOG, total_cnt, success_cnt, all_result_str)
+    else:
+        print("\n🔇 跳过所有通知推送（Server酱/企业微信/钉钉）")
 
     print("\n" + "=" * 60)
     print(f"🏁 完成 | 成功 {success_cnt}/{total_cnt} | 失败 {len(FAILED_LOG)} | 需推送账号 {len(FILTERED_LOG)}")
