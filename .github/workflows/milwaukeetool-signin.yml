@@ -2,7 +2,7 @@ name: milwaukeetool Auto Sign
 
 on:
   schedule:
-    - cron: '30 22,4,10 * * *'  # 仅改这行：对应北京时间06:30/12:30/18:30
+    - cron: '20 22,4,10 * * *'  # 仅改这行：对应北京时间06:30/12:30/18:30
   workflow_dispatch:  # 手动触发
 
 jobs:
