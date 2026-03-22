@@ -6,8 +6,8 @@ import time
 import random
 import os
 from datetime import datetime
-# 新增的3行代码 ↓
-os.environ['TZ'] = 'Asia/Shanghai'  # 设置时区为上海（北京时间）
+# 设置时区为上海（北京时间）
+os.environ['TZ'] = 'Asia/Shanghai'
 if hasattr(time, 'tzset'):
     time.tzset()  # 生效时区设置（兼容Linux系统，GitHub Actions用的是Linux）
 
