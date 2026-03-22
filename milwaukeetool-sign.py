@@ -1,11 +1,15 @@
 import requests
 from requests.exceptions import RequestException
-import json
 import hashlib
+import json
 import time
 import random
 import os
 from datetime import datetime
+# 新增的3行代码 ↓
+os.environ['TZ'] = 'Asia/Shanghai'  # 设置时区为上海（北京时间）
+if hasattr(time, 'tzset'):
+    time.tzset()  # 生效时区设置（兼容Linux系统，GitHub Actions用的是Linux）
 
 # ================= 全局配置区 =================
 GLOBAL_METHOD = "add.signon.item"
