@@ -2,9 +2,10 @@ name: milwaukeetool Auto Sign
 
 on:
   schedule:
-    - cron: '30 22 * * *'  # UTC22:30 = 北京时间6:30
-      # timezone: Asia/Shanghai  # 注释掉，避免报错
-  workflow_dispatch:  # 手动执行开关保留
+    - cron: '5 22 * * *'  # 北京 06:05
+    - cron: '5 4 * * *'   # 北京 12:05
+    - cron: '5 10 * * *'  # 北京 18:05
+  workflow_dispatch:
 
 jobs:
   sign:
