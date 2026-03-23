@@ -282,7 +282,7 @@ def signAndList(token, client_id, account_index=1):
         msg = resp_json.get("msg", "") or resp_json.get("message", "") or str(resp_json)
 
         is_success = False
-        if code == 200 or "成功" in msg or "已签到" in msg:
+        if code == 200 or "成功" in msg or "已签到" in msg or "success" in msg:
             is_success = True
 
         # 签到后查积分
