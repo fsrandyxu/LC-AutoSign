@@ -1,21 +1,9 @@
-name: JLC Auto Sign
-
+# 任务已禁用
+name: JLC Auto Sign (Disabled)
 on:
-  schedule:
-    - cron: '0 16,22,4,10 * * *'  # 每 6 小时执行一次，UTC 时间
-
   workflow_dispatch:
-
 jobs:
-  sign:
+  disabled:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-
-    - name: Run Sign Script
-      env:
-        TOKEN_LIST: ${{ secrets.TOKEN_LIST }}
-        SERVERCHAN_SENDKEY: ${{ secrets.SERVERCHAN_SENDKEY }}
-      run: |
-        python main.py
+      - run: echo "任务已禁用，不会执行"
