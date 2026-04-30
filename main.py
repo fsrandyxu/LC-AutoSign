@@ -14,7 +14,15 @@ SERVERCHAN_SENDKEY = os.getenv('SERVERCHAN_SENDKEY', '')
 url = 'https://m.jlc.com/api/activity/sign/signIn?source=3'
 gold_bean_url = "https://m.jlc.com/api/appPlatform/center/assets/selectPersonalAssetsInfo"
 seventh_day_url = "https://m.jlc.com/api/activity/sign/receiveVoucher"
-
+# 随机UA池
+UA_POOL = [
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 17_2_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Html5Plus/1.0 (Immersed/20) JlcMobileApp",
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 Safari/604.1",
+    "Mozilla/5.0 (Android 14; SM-S918B) AppleWebKit/537.36 Chrome/122.0.0.0 Mobile Safari/537.36",
+    "Mozilla/5.0 (Android 13; MI 13) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_3) AppleWebKit/605.1.15 Safari/605.1.15",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/122.0.0.0 Safari/537.36"
+]
 
 # ======== 工具函数 ========
 
@@ -59,11 +67,13 @@ def send_msg_by_server(send_key, title, content):
 # ======== 单个账号签到逻辑 ========
 
 def sign_in(access_token):
-    headers = {
-        'X-JLC-AccessToken': access_token,
-        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_2_1 like Mac OS X) '
-                      'AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Html5Plus/1.0 (Immersed/20) JlcMobileApp',
-    }
+# 每次随机选取UA
+random_ua = random.choice(UA_POOL)
+headers = {
+    'X-JLC-AccessToken': access_token,
+    'User-Agent': random_ua,
+}
+
 
     try:
         # 1. 获取金豆信息（先获取，用于获取 customer_code）
